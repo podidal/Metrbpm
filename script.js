@@ -1,9 +1,10 @@
 // script.js
 
-// Get the start button, status display, and microphone indicator elements
+// Get the start button, status display, microphone indicator, and peak indicator elements
 const startButton = document.getElementById('startButton');
 const statusDisplay = document.getElementById('status');
 const microphoneIndicator = document.getElementById('microphoneIndicator');
+const peakIndicator = document.getElementById('peakIndicator');
 
 // Variables to store audio context, analyser, and other related data
 let audioContext;
@@ -68,6 +69,9 @@ function analyzeAudio() {
     }
     const averageVolume = sum / bufferLength;
 
+    // Update the height of the peak indicator based on the average volume
+    peakIndicator.style.height = `${averageVolume}px`;
+
     // If the average volume is above a certain threshold, consider it a beat
     if (averageVolume > 60) {
         // Get the current time in seconds
@@ -89,6 +93,12 @@ function analyzeAudio() {
             // Calculate the BPM from the average beat time
             const currentBPM = 60 / averageBeatTime;
 
+            console.log('BPM calculation', {
+                beatTimes,
+                averageBeatTime,
+                currentBPM
+            });
+
             // If the BPM is within a reasonable range, update the BPM
             if (currentBPM > 30 && currentBPM < 200) {
                 bpm = currentBPM;
@@ -103,6 +113,14 @@ function analyzeAudio() {
                 const lastFourBPM = 60 / averageLastFourBeats;
                 const bpmDifference = Math.abs(lastFourBPM - bpm);
                 const bpmPercentageDifference = (bpmDifference / bpm) * 100;
+
+                console.log('BPM stability check', {
+                    lastFourBeats,
+                    averageLastFourBeats,
+                    lastFourBPM,
+                    bpmDifference,
+                    bpmPercentageDifference
+                });
 
                 // If the BPM is stable within a 10% range, fix the BPM
                 if (bpmPercentageDifference <= 10) {

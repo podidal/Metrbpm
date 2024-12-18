@@ -44,3 +44,10 @@ button:hover {
 #microphoneIndicator.active {
     background-color: green;
 }
+
+#peakIndicator {
+    width: 20px;
+    background-color: blue;
+    margin-top: 10px;
+    transition: height 0.1s ease;
+}
