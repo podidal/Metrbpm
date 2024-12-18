@@ -1,10 +1,11 @@
 // script.js
 
-// Get the start button, status display, microphone indicator, and peak indicator elements
+// Get the start button, status display, microphone indicator, peak indicator, and log display elements
 const startButton = document.getElementById('startButton');
 const statusDisplay = document.getElementById('status');
 const microphoneIndicator = document.getElementById('microphoneIndicator');
 const peakIndicator = document.getElementById('peakIndicator');
+const logDisplay = document.getElementById('logDisplay');
 
 // Variables to store audio context, analyser, and other related data
 let audioContext;
@@ -43,12 +44,20 @@ async function initAudio() {
 
         // Set the initial status message
         statusDisplay.textContent = 'Ready to listen';
-        console.log('Audio initialized');
+        logMessage('Audio initialized');
     } catch (error) {
         // Log any errors that occur during initialization
         console.error('Error initializing audio:', error);
         statusDisplay.textContent = 'Error initializing audio. Please check console.';
     }
+}
+
+// Function to add a message to the log display
+function logMessage(message) {
+    const logEntry = document.createElement('div');
+    logEntry.textContent = message;
+    logDisplay.appendChild(logEntry);
+    logDisplay.scrollTop = logDisplay.scrollHeight; // Auto-scroll to bottom
 }
 
 
@@ -83,7 +92,7 @@ function analyzeAudio() {
         if (timeSinceLastBeat > 0.1) {
             beatTimes.push(timeSinceLastBeat);
             lastBeatTime = currentTime;
-            console.log('Beat detected', { timeSinceLastBeat });
+            logMessage(`Beat detected: ${timeSinceLastBeat.toFixed(3)}s`);
         }
 
         // If we have enough beat times, calculate the average BPM
@@ -93,17 +102,13 @@ function analyzeAudio() {
             // Calculate the BPM from the average beat time
             const currentBPM = 60 / averageBeatTime;
 
-            console.log('BPM calculation', {
-                beatTimes,
-                averageBeatTime,
-                currentBPM
-            });
+            logMessage(`BPM calculation: beatTimes=[${beatTimes.map(t => t.toFixed(3)).join(',')}], avg=${averageBeatTime.toFixed(3)}, bpm=${currentBPM.toFixed(2)}`);
 
             // If the BPM is within a reasonable range, update the BPM
             if (currentBPM > 30 && currentBPM < 200) {
                 bpm = currentBPM;
                 statusDisplay.textContent = `Detected BPM: ${bpm.toFixed(2)}`;
-                console.log('BPM updated', { bpm });
+                logMessage(`BPM updated: ${bpm.toFixed(2)}`);
             }
 
             // Check if the BPM is stable
@@ -114,19 +119,13 @@ function analyzeAudio() {
                 const bpmDifference = Math.abs(lastFourBPM - bpm);
                 const bpmPercentageDifference = (bpmDifference / bpm) * 100;
 
-                console.log('BPM stability check', {
-                    lastFourBeats,
-                    averageLastFourBeats,
-                    lastFourBPM,
-                    bpmDifference,
-                    bpmPercentageDifference
-                });
+                logMessage(`BPM stability check: lastFourBeats=[${lastFourBeats.map(t => t.toFixed(3)).join(',')}], avg=${averageLastFourBeats.toFixed(3)}, lastFourBPM=${lastFourBPM.toFixed(2)}, diff=${bpmDifference.toFixed(2)}, %diff=${bpmPercentageDifference.toFixed(2)}`);
 
                 // If the BPM is stable within a 10% range, fix the BPM
                 if (bpmPercentageDifference <= 10) {
                     isFixedBPM = true;
                     statusDisplay.textContent = `BPM Fixed: ${bpm.toFixed(2)}`;
-                    console.log('BPM fixed', { bpm });
+                    logMessage(`BPM fixed: ${bpm.toFixed(2)}`);
                     playDrumBeat();
                 }
             }
@@ -137,7 +136,7 @@ function analyzeAudio() {
         bpm = 0;
         isFixedBPM = false;
         statusDisplay.textContent = 'Listening for BPM';
-        console.log('Stopped playing, resetting BPM');
+        logMessage('Stopped playing, resetting BPM');
         stopDrumBeat();
     }
 }
@@ -183,7 +182,7 @@ function playDrumBeat() {
         oscillator.start(startTime);
         // Stop the oscillator after a short duration
         oscillator.stop(startTime + 0.1);
-        console.log('Playing beat', { startTime });
+        logMessage(`Playing beat: ${startTime.toFixed(3)}s`);
 
         // Schedule the next beat
         startTime += beatInterval;
@@ -207,7 +206,7 @@ function stopDrumBeat() {
         gainNode.disconnect();
         gainNode = null;
     }
-    console.log('Stopped drum beat');
+    logMessage('Stopped drum beat');
 }
 
 // Event listener for the start button
@@ -223,7 +222,7 @@ startButton.addEventListener('click', async () => {
         startButton.textContent = 'Stop Listening';
         statusDisplay.textContent = 'Listening for BPM';
         microphoneIndicator.classList.add('active');
-        console.log('Started listening');
+        logMessage('Started listening');
     } else {
         // Stop listening and reset the state
         isListening = false;
@@ -235,6 +234,6 @@ startButton.addEventListener('click', async () => {
         startButton.textContent = 'Start Listening';
         statusDisplay.textContent = 'Stopped listening';
         microphoneIndicator.classList.remove('active');
-        console.log('Stopped listening');
+        logMessage('Stopped listening');
     }
 });
